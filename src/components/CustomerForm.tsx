@@ -24,11 +24,7 @@ export const CustomerForm = ({ onClose }: CustomerFormProps) => {
     e.preventDefault();
     try {
       setLoading(true);
-      await createCustomer({
-        ...formData,
-        outstanding: 0,
-        photo: formData.name.slice(0, 2).toUpperCase(),
-      });
+      await createCustomer(formData);
       onClose();
     } catch (error) {
       console.error('Error creating customer:', error);
@@ -54,31 +50,17 @@ export const CustomerForm = ({ onClose }: CustomerFormProps) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                {language === 'en' ? 'Name (English)' : 'नाम (अंग्रेजी)'}
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-4 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                {language === 'en' ? 'Name (Hindi)' : 'नाम (हिंदी)'}
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.nameHi}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} // Keep Hindi name in same field with a separator
-                className="w-full px-4 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+              {language === 'en' ? 'Name' : 'नाम'}
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              className="w-full px-4 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors"
+            />
           </div>
 
           <div>
@@ -119,7 +101,8 @@ export const CustomerForm = ({ onClose }: CustomerFormProps) => {
                 required
                 min="0.5"
                 step="0.5"
-                value={formData.daily_liters}
+                // [FIX] Check for NaN and set value to empty string if true
+                value={isNaN(formData.daily_liters) ? '' : formData.daily_liters}
                 onChange={(e) => setFormData(prev => ({ ...prev, daily_liters: parseFloat(e.target.value) }))}
                 className="w-full px-4 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors"
               />
@@ -134,7 +117,8 @@ export const CustomerForm = ({ onClose }: CustomerFormProps) => {
               type="number"
               required
               min="1"
-              value={formData.rate_per_liter}
+              // [FIX] Check for NaN and set value to empty string if true
+              value={isNaN(formData.rate_per_liter) ? '' : formData.rate_per_liter}
               onChange={(e) => setFormData(prev => ({ ...prev, rate_per_liter: parseInt(e.target.value) }))}
               className="w-full px-4 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors"
             />

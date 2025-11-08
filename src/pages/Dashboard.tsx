@@ -1,22 +1,12 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Mic, PieChart, Search, Filter, IndianRupee, Milk, TrendingUp, FileText, Bell, Menu, Moon, Sun } from 'lucide-react';
+import { UserPlus, Mic, PieChart, Search, Filter, IndianRupee, Milk, TrendingUp, FileText, Bell, Menu, Moon, Sun, LogOut } from 'lucide-react'; // [FIX] Import LogOut icon
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCustomer } from '../contexts/CustomerContext';
 import { CustomerModal } from '../components/CustomerModal';
 import { CustomerForm } from '../components/CustomerForm';
-
-interface Customer {
-  id: string;
-  name: string;
-  nameHi: string;
-  phone: string;
-  milkType: 'cow' | 'buffalo';
-  dailyLiters: number;
-  ratePerLiter: number;
-  outstanding: number;
-  photo: string;
-}
+import { Customer } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext'; // [FIX] Import useAuth
 
 interface DashboardProps {
   onNavigate: (page: string) => void;
@@ -26,6 +16,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   const { theme, toggleTheme } = useTheme();
   const { language } = useLanguage();
   const { customers, fetchCustomers } = useCustomer();
+  const { signOut } = useAuth(); // [FIX] Get the signOut function
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
@@ -35,7 +26,11 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
     fetchCustomers();
   }, [fetchCustomers]);
 
-  // Customers are now fetched from CustomerContext
+  // [FIX] Add a handleSignOut function
+  const handleSignOut = async () => {
+    await signOut();
+    onNavigate('landing'); // Navigate to landing page after sign out
+  };
 
   const recentTransactions = [
     { customer: 'Ramesh Kumar', customerHi: 'रमेश कुमार', amount: 180, type: 'delivery', time: '2h ago' },
@@ -80,6 +75,14 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
               >
                 {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </button>
+              {/* [FIX] Add Sign Out button */}
+              <button
+                onClick={handleSignOut}
+                className="p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
+                title={language === 'en' ? 'Sign Out' : 'साइन आउट करें'}
+              >
+                <LogOut className="w-5 h-5 text-[var(--red)]" />
+              </button>
               <button
                 onClick={() => onNavigate('subscription')}
                 className="hidden sm:block px-4 py-2 rounded-lg bg-gradient-to-r from-[var(--green)] to-[var(--dark-green)] text-white font-medium hover:scale-105 transition-transform text-sm"
@@ -90,6 +93,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           </div>
         </div>
       </nav>
+
+      {/* ... (rest of the file is the same) ... */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
@@ -286,6 +291,10 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           onClose={() => setSelectedCustomer(null)}
           onNavigate={onNavigate}
         />
+      )}
+
+      {showAddCustomerForm && (
+        <CustomerForm onClose={() => setShowAddCustomerForm(false)} />
       )}
 
       {showVoiceModal && (
