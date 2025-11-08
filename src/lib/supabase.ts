@@ -1,0 +1,74 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export type Customer = {
+  id: string;
+  user_id: string;
+  name: string;
+  phone: string;
+  milk_type: 'cow' | 'buffalo';
+  daily_liters: number;
+  rate_per_liter: number;
+  outstanding_amount: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Delivery = {
+  id: string;
+  user_id: string;
+  customer_id: string;
+  liters_delivered: number;
+  rate_used: number;
+  delivery_date: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Payment = {
+  id: string;
+  user_id: string;
+  customer_id: string;
+  amount: number;
+  payment_method: 'cash' | 'upi' | 'card' | 'bank';
+  payment_date: string;
+  reference_id?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Bill = {
+  id: string;
+  user_id: string;
+  customer_id: string;
+  month: string;
+  total_liters: number;
+  total_amount: number;
+  paid_amount: number;
+  status: 'draft' | 'sent' | 'paid' | 'partial';
+  sent_via_whatsapp: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type User = {
+  id: string;
+  email: string;
+  phone?: string;
+  name?: string;
+  subscription_plan: 'free' | 'plus' | 'pro';
+  subscription_active: boolean;
+  subscription_expires?: string;
+  created_at: string;
+  updated_at: string;
+};
