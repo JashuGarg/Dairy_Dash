@@ -14,7 +14,15 @@ interface CustomerContextType {
   getCustomer: (customerId: string) => Customer | undefined;
 }
 
-const CustomerContext = createContext<CustomerContextType | undefined>(undefined);
+export const CustomerContext = createContext<CustomerContextType | undefined>(undefined);
+
+export const useCustomer = () => {
+  const context = useContext(CustomerContext);
+  if (context === undefined) {
+    throw new Error('useCustomer must be used within a CustomerProvider');
+  }
+  return context;
+};
 
 export const CustomerProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();

@@ -21,8 +21,21 @@ export const authService = {
         subscription_active: false,
       });
 
+      
+// CREATE TABLE IF NOT EXISTS users (
+//   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+//   email text UNIQUE NOT NULL,
+//   phone text UNIQUE,
+//   name text,
+//   created_at timestamptz DEFAULT now(),
+//   subscription_plan text DEFAULT 'free' CHECK (subscription_plan IN ('free', 'plus', 'pro')),
+//   subscription_active boolean DEFAULT false,
+//   subscription_expires timestamptz,
+//   updated_at timestamptz DEFAULT now()
+// );
     if (profileError) throw profileError;
-
+      console.log(authData.user);
+      
     return authData.user;
   },
 
@@ -33,6 +46,8 @@ export const authService = {
     });
 
     if (error) throw error;
+    console.log(data.user);
+    
     return data.user;
   },
 

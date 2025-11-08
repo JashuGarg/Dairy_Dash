@@ -1,87 +1,85 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '@supabase/supabase-js';
-import { authService } from '../lib/auth';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import type { Session, User } from '@supabase/supabase-js';
 
-interface AuthContextType {
+import type { AuthResponse, AuthOtpResponse } from '@supabase/supabase-js';
+
+type AuthContextType = {
   user: User | null;
+  session: Session | null;
   loading: boolean;
-  error: string | null;
-  signUp: (email: string, password: string, name: string, phone: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-}
+  signInWithEmailOtp: (email: string) => Promise<AuthOtpResponse>;
+  signInWithPhoneOtp: (phone: string) => Promise<AuthOtpResponse>;
+  signUp: (email: string, password: string) => Promise<AuthResponse>;
+  signInWithPassword: (email: string, password: string) => Promise<AuthResponse>;
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const currentUser = await authService.getCurrentUser();
-        setUser(currentUser);
-      } catch (err) {
-        console.log('No user logged in');
-      } finally {
-        setLoading(false);
+    let mounted = true;
+
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      if (data?.session) {
+        setSession(data.session);
+        setUser(data.session.user);
       }
+      setLoading(false);
     };
 
-    initAuth();
+    init();
 
-    const { data: { subscription } } = authService.onAuthStateChange((newUser) => {
-      setUser(newUser);
+    const { data } = supabase.auth.onAuthStateChange((_event, sess) => {
+      setSession(sess);
+      setUser(sess?.user ?? null);
+      setLoading(false);
     });
 
-    return () => subscription?.unsubscribe();
+    return () => {
+      mounted = false;
+      data.subscription.unsubscribe();
+    };
   }, []);
 
-  const signUp = async (email: string, password: string, name: string, phone: string) => {
-    try {
-      setError(null);
-      await authService.signUpWithEmail(email, password, name, phone);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Sign up failed';
-      setError(message);
-      throw err;
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    try {
-      setError(null);
-      await authService.signInWithEmail(email, password);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Sign in failed';
-      setError(message);
-      throw err;
-    }
-  };
-
   const signOut = async () => {
-    try {
-      setError(null);
-      await authService.signOut();
-      setUser(null);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Sign out failed';
-      setError(message);
-      throw err;
-    }
+    await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
+  };
+
+  const signInWithEmailOtp = async (email: string) => {
+    return supabase.auth.signInWithOtp({ email });
+  };
+
+  const signInWithPhoneOtp = async (phone: string) => {
+    return supabase.auth.signInWithOtp({ phone });
+  };
+
+  const signUp = async (email: string, password: string) => {
+    return supabase.auth.signUp({ email, password });
+  };
+
+  const signInWithPassword = async (email: string, password: string) => {
+    return supabase.auth.signInWithPassword({ email, password });
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut, signInWithEmailOtp, signInWithPhoneOtp, signUp, signInWithPassword }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
 };

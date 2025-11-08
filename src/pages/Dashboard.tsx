@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UserPlus, Mic, PieChart, Search, Filter, IndianRupee, Milk, TrendingUp, FileText, Bell, Menu, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useCustomer } from '../contexts/CustomerContext';
 import { CustomerModal } from '../components/CustomerModal';
+import { CustomerForm } from '../components/CustomerForm';
 
 interface Customer {
   id: string;
@@ -23,18 +25,17 @@ interface DashboardProps {
 export const Dashboard = ({ onNavigate }: DashboardProps) => {
   const { theme, toggleTheme } = useTheme();
   const { language } = useLanguage();
+  const { customers, fetchCustomers } = useCustomer();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [showAddCustomerForm, setShowAddCustomerForm] = useState(false);
 
-  const customers: Customer[] = [
-    { id: '1', name: 'Ramesh Kumar', nameHi: 'रमेश कुमार', phone: '+91 98765 43210', milkType: 'cow', dailyLiters: 3, ratePerLiter: 60, outstanding: 180, photo: 'RK' },
-    { id: '2', name: 'Sunita Devi', nameHi: 'सुनीता देवी', phone: '+91 98765 43211', milkType: 'buffalo', dailyLiters: 2, ratePerLiter: 75, outstanding: 0, photo: 'SD' },
-    { id: '3', name: 'Vijay Singh', nameHi: 'विजय सिंह', phone: '+91 98765 43212', milkType: 'cow', dailyLiters: 4, ratePerLiter: 60, outstanding: 360, photo: 'VS' },
-    { id: '4', name: 'Priya Sharma', nameHi: 'प्रिया शर्मा', phone: '+91 98765 43213', milkType: 'buffalo', dailyLiters: 2.5, ratePerLiter: 75, outstanding: 225, photo: 'PS' },
-    { id: '5', name: 'Rakesh Patil', nameHi: 'राकेश पाटिल', phone: '+91 98765 43214', milkType: 'cow', dailyLiters: 3.5, ratePerLiter: 60, outstanding: 0, photo: 'RP' },
-    { id: '6', name: 'Anjali Mehta', nameHi: 'अंजलि मेहता', phone: '+91 98765 43215', milkType: 'buffalo', dailyLiters: 3, ratePerLiter: 75, outstanding: 450, photo: 'AM' },
-  ];
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
+
+  // Customers are now fetched from CustomerContext
 
   const recentTransactions = [
     { customer: 'Ramesh Kumar', customerHi: 'रमेश कुमार', amount: 180, type: 'delivery', time: '2h ago' },
@@ -45,14 +46,14 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
 
   const stats = {
     totalCustomers: customers.length,
-    cowCustomers: customers.filter(c => c.milkType === 'cow').length,
-    buffaloCustomers: customers.filter(c => c.milkType === 'buffalo').length,
-    totalOutstanding: customers.reduce((sum, c) => sum + c.outstanding, 0),
+    cowCustomers: customers.filter(c => c.milk_type === 'cow').length,
+    buffaloCustomers: customers.filter(c => c.milk_type === 'buffalo').length,
+    totalOutstanding: customers.reduce((sum, c) => sum + (c.outstanding_amount || 0), 0),
     todayDeliveries: 12,
   };
 
   const filteredCustomers = customers.filter(c =>
-    (language === 'en' ? c.name : c.nameHi).toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.phone.includes(searchQuery)
   );
 
@@ -93,7 +94,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           <button
-            onClick={() => onNavigate('add-customer')}
+            onClick={() => setShowAddCustomerForm(true)}
             className="group p-6 rounded-2xl bg-gradient-to-br from-[var(--green)] to-[var(--dark-green)] text-white hover:scale-105 transition-all shadow-lg"
           >
             <div className="flex items-center justify-center gap-3">
@@ -213,27 +214,27 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                 >
                   <div className="flex items-start gap-4">
                     <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--green)] to-[var(--dark-green)] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                      {customer.photo}
+                      {customer.name.slice(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <h3 className="font-bold text-[var(--text-primary)] text-lg truncate">
-                          {language === 'en' ? customer.name : customer.nameHi}
+                          {customer.name}
                         </h3>
                         <span className="text-2xl flex-shrink-0">
-                          {customer.milkType === 'cow' ? '🐄' : '🐃'}
+                          {customer.milk_type === 'cow' ? '🐄' : '🐃'}
                         </span>
                       </div>
                       <p className="text-sm text-[var(--text-secondary)] mb-2">{customer.phone}</p>
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-1 text-[var(--text-primary)]">
                           <Milk className="w-4 h-4 text-[var(--blue)]" />
-                          <span className="font-semibold">{customer.dailyLiters}L</span>
-                          <span className="text-xs text-[var(--text-tertiary)]">@ ₹{customer.ratePerLiter}</span>
+                          <span className="font-semibold">{customer.daily_liters}L</span>
+                          <span className="text-xs text-[var(--text-tertiary)]">@ ₹{customer.rate_per_liter}</span>
                         </div>
-                        {customer.outstanding > 0 && (
+                        {customer.outstanding_amount > 0 && (
                           <div className="px-3 py-1 rounded-full bg-[var(--orange)]/10 text-[var(--orange)] text-xs font-bold border border-[var(--orange)]/20">
-                            ₹{customer.outstanding} {language === 'en' ? 'Due' : 'बकाया'}
+                            ₹{customer.outstanding_amount} {language === 'en' ? 'Due' : 'बकाया'}
                           </div>
                         )}
                       </div>

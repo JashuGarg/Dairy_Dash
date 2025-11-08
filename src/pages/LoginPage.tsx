@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Milk, Phone, Mail, ArrowLeft, Languages } from 'lucide-react';
+import { Milk, Phone, Mail, ArrowLeft, Languages, Lock } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface LoginPageProps {
   onNavigate: (page: string) => void;
@@ -8,18 +9,33 @@ interface LoginPageProps {
 
 export const LoginPage = ({ onNavigate }: LoginPageProps) => {
   const { language, setLanguage } = useLanguage();
+  const { signInWithPassword } = useAuth();
   const [method, setMethod] = useState<'phone' | 'email'>('phone');
   const [step, setStep] = useState<'input' | 'otp'>('input');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (step === 'input' && method === 'phone') {
-      setStep('otp');
-    } else {
-      onNavigate('dashboard');
+    setError(null);
+
+    try {
+      if (method === 'email') {
+        await signInWithPassword(email, password);
+        // navigate to dashboard after successful sign in
+        onNavigate('dashboard');
+      } else if (step === 'input' && method === 'phone') {
+        setStep('otp');
+      } else {
+        // Handle phone OTP verification here
+        // TODO: Implement phone authentication with Supabase
+        setError('Phone authentication is not implemented yet');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
     }
   };
 
@@ -127,6 +143,22 @@ export const LoginPage = ({ onNavigate }: LoginPageProps) => {
                       className="w-full px-4 py-3 rounded-xl border-2 border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors text-lg"
                       required
                     />
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                        {language === 'en' ? 'Password' : 'पासवर्ड'}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder={language === 'en' ? '••••••••' : '••••••••'}
+                          className="w-full pl-4 pr-12 py-3 rounded-xl border-2 border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors text-lg"
+                          required
+                        />
+                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
+                      </div>
+                    </div>
                   </div>
                 )}
               </>
@@ -157,6 +189,12 @@ export const LoginPage = ({ onNavigate }: LoginPageProps) => {
               </div>
             )}
 
+            {error && (
+              <div className="mb-4 p-3 rounded-lg bg-red-100 border border-red-400 text-red-700">
+                {error}
+              </div>
+            )}
+
             <button
               type="submit"
               className="w-full py-4 rounded-xl bg-gradient-to-r from-[var(--green)] to-[var(--dark-green)] text-white font-bold text-lg hover:scale-105 transition-transform shadow-lg"
@@ -178,7 +216,10 @@ export const LoginPage = ({ onNavigate }: LoginPageProps) => {
           <div className="mt-6 text-center">
             <p className="text-sm text-[var(--text-secondary)]">
               {language === 'en' ? "Don't have an account? " : 'खाता नहीं है? '}
-              <button className="text-[var(--green)] font-semibold hover:underline">
+              <button 
+                onClick={() => onNavigate('signup')}
+                className="text-[var(--green)] font-semibold hover:underline"
+              >
                 {language === 'en' ? 'Sign up free' : 'मुफ्त साइन अप करें'}
               </button>
             </p>
