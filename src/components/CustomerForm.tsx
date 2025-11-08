@@ -9,7 +9,7 @@ interface CustomerFormProps {
 
 export const CustomerForm = ({ onClose }: CustomerFormProps) => {
   const { language } = useLanguage();
-  const { createCustomer } = useCustomer();
+  const { createCustomer, customers } = useCustomer();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -22,13 +22,56 @@ export const CustomerForm = ({ onClose }: CustomerFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Basic client-side validation
+    if (!formData.name.trim()) {
+      alert(language === 'en' ? 'Please enter a name.' : 'कृपया नाम दर्ज करें।');
+      return;
+    }
+    if (!formData.phone.trim()) {
+      alert(language === 'en' ? 'Please enter a phone number.' : 'कृपया फोन नंबर दर्ज करें।');
+      return;
+    }
+    if (isNaN(formData.daily_liters) || formData.daily_liters <= 0) {
+      alert(language === 'en' ? 'Daily quantity must be a number greater than 0.' : 'दैनिक मात्रा 0 से अधिक एक संख्या होनी चाहिए।');
+      return;
+    }
+    if (isNaN(formData.rate_per_liter) || formData.rate_per_liter <= 0) {
+      alert(language === 'en' ? 'Rate per liter must be a number greater than 0.' : 'प्रति लीटर दर 0 से अधिक एक संख्या होनी चाहिए।');
+      return;
+    }
+
+    // Quick client-side duplicate-phone guard (prevents obvious 409 conflicts)
+    try {
+      const phoneExists = customers.some(c => c.phone === formData.phone);
+      if (phoneExists) {
+        alert(language === 'en'
+          ? 'A customer with this phone number already exists.'
+          : 'इस फोन नंबर के साथ पहले से एक ग्राहक मौजूद है।');
+        return;
+      }
+    } catch (err) {
+      // non-blocking: if customers isn't available for some reason, continue to attempt create
+      console.debug('Could not check existing customers locally', err);
+    }
+
     try {
       setLoading(true);
       await createCustomer(formData);
       onClose();
-    } catch (error) {
+    } catch (error: unknown) {
+      // Show detailed error to the user so the cause (e.g. 409 conflict / unique constraint) is visible
       console.error('Error creating customer:', error);
-      // TODO: Show error toast
+      let message = '';
+      if (typeof error === 'string') {
+        message = error;
+      } else if (error && typeof error === 'object') {
+        const eObj = error as Record<string, unknown>;
+        message = String(eObj.message ?? eObj.msg ?? eObj.error ?? eObj.details ?? JSON.stringify(eObj));
+      } else {
+        message = String(error);
+      }
+      alert(language === 'en' ? `Failed to create customer: ${message}` : `ग्राहक बनाने में विफल: ${message}`);
     } finally {
       setLoading(false);
     }

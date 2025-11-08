@@ -2,17 +2,59 @@ import { supabase, Customer } from './supabase';
 
 export const customerService = {
   async createCustomer(userId: string, customerData: Omit<Customer, 'id' | 'user_id' | 'created_at' | 'updated_at'>) {
-    const { data, error } = await supabase
-      .from('customers')
-      .insert({
-        user_id: userId,
-        ...customerData,
-      })
-      .select()
-      .single();
+    // Try insert; if foreign-key to users(id) is missing, attempt to create a minimal
+    // profile row for the current authenticated user and retry once.
+    const attemptInsert = async () => {
+      const { data, error } = await supabase
+        .from('customers')
+        .insert({
+          user_id: userId,
+          ...customerData,
+        })
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data as Customer;
+      return { data: data as Customer | null, error };
+    };
+
+    let res = await attemptInsert();
+
+    if (res.error) {
+      const msg = String(res.error.message ?? res.error.details ?? res.error);
+      // Detect foreign key violation on customers.user_id -> users.id
+      if (msg.toLowerCase().includes('foreign key') || msg.toLowerCase().includes('customers_user_id_fkey')) {
+        try {
+          // Try to ensure profile exists for current authenticated user
+          const { data: authData } = await supabase.auth.getUser();
+          const u = authData?.user ?? null;
+          if (u) {
+            // insert minimal profile if missing
+            const { data: existing } = await supabase.from('users').select('id').eq('id', u.id).maybeSingle();
+            if (!existing) {
+              const metadata = u.user_metadata as Record<string, unknown> | undefined;
+              const name = typeof metadata?.name === 'string' ? metadata.name : null;
+              const phone = typeof metadata?.phone === 'string' ? metadata.phone : null;
+              await supabase.from('users').insert({
+                id: u.id,
+                email: u.email ?? null,
+                name,
+                phone,
+                subscription_plan: 'free',
+                subscription_active: false,
+              });
+            }
+            // retry insert once
+            res = await attemptInsert();
+          }
+        } catch (err) {
+          // ignore and rethrow original error below
+          console.warn('Failed to auto-create profile after FK error', err);
+        }
+      }
+    }
+
+    if (res.error) throw res.error;
+    return res.data as Customer;
   },
 
   async getCustomers(userId: string) {

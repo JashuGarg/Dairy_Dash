@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { PieChart, IndianRupee, Milk, TrendingUp, FileText, Bell, Menu, Moon, Sun, LogOut, Mic, UserPlus } from 'lucide-react';
+import { PieChart, IndianRupee, Milk, TrendingUp, FileText, Bell, Menu, Moon, Sun, LogOut, Mic } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCustomer } from '../contexts/CustomerContext';
 import { CustomerModal } from '../components/CustomerModal';
 import { CustomerForm } from '../components/CustomerForm';
 import { CustomerTable } from '../components/CustomerTable';
+import { FloatingActionButtons } from '../components/FloatingActionButtons';
 import { SearchAndFilters } from '../components/SearchAndFilters';
 import { Customer } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -52,13 +53,19 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
 
   // Apply filters
   const filteredCustomers = customers.filter(c => {
+    // Search filter
     const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.phone.includes(searchQuery);
+    
+    // Milk type filter
     const matchesMilkType = milkTypeFilter === 'all' || c.milk_type === milkTypeFilter;
+    
+    // Outstanding filter
     const matchesOutstanding = 
       outstandingFilter === 'all' ||
       (outstandingFilter === 'has_outstanding' && c.outstanding_amount > 0) ||
       (outstandingFilter === 'paid' && c.outstanding_amount === 0);
+    
     return matchesSearch && matchesMilkType && matchesOutstanding;
   });
 
@@ -108,127 +115,123 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {/* Total Customers Card */}
-          <div className="p-5 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-[var(--green)]/10">
-                <PieChart className="w-6 h-6 text-[var(--green)]" />
-              </div>
-              <span className="text-3xl font-bold text-[var(--text-primary)]">{stats.totalCustomers}</span>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+          <div className="p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] shadow-md">
+            <div className="flex items-center justify-between mb-2">
+              <PieChart className="w-8 h-8 text-[var(--green)]" />
+              <span className="text-2xl font-bold text-[var(--text-primary)]">{stats.totalCustomers}</span>
             </div>
-            <div className="text-sm font-medium text-[var(--text-secondary)] mb-1">
-              {language === 'en' ? 'Total Customers' : 'कुल ग्राहक'}
-            </div>
-            <div className="flex items-center gap-3 text-xs text-[var(--text-tertiary)]">
-              <span>🐄 {stats.cowCustomers}</span>
-              <span>🐃 {stats.buffaloCustomers}</span>
+            <div className="text-sm text-[var(--text-secondary)]">{language === 'en' ? 'Total Customers' : 'कुल ग्राहक'}</div>
+            <div className="mt-2 text-xs text-[var(--text-tertiary)]">
+              🐄 {stats.cowCustomers} {language === 'en' ? 'Cow' : 'गाय'} | 🐃 {stats.buffaloCustomers} {language === 'en' ? 'Buffalo' : 'भैंस'}
             </div>
           </div>
 
-          {/* Outstanding Amount Card */}
-          <div className="p-5 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-[var(--orange)]/10">
-                <IndianRupee className="w-6 h-6 text-[var(--orange)]" />
-              </div>
-              <span className="text-3xl font-bold text-[var(--text-primary)]">₹{stats.totalOutstanding}</span>
+          <div className="p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] shadow-md">
+            <div className="flex items-center justify-between mb-2">
+              <IndianRupee className="w-8 h-8 text-[var(--orange)]" />
+              <span className="text-2xl font-bold text-[var(--text-primary)]">₹{stats.totalOutstanding}</span>
             </div>
-            <div className="text-sm font-medium text-[var(--text-secondary)]">
-              {language === 'en' ? 'Outstanding' : 'बकाया'}
-            </div>
+            <div className="text-sm text-[var(--text-secondary)]">{language === 'en' ? 'Outstanding' : 'बकाया'}</div>
           </div>
 
-          {/* Today Deliveries Card */}
-          <div className="p-5 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-[var(--blue)]/10">
-                <Milk className="w-6 h-6 text-[var(--blue)]" />
-              </div>
-              <span className="text-3xl font-bold text-[var(--text-primary)]">{stats.todayDeliveries}</span>
+          <div className="p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] shadow-md">
+            <div className="flex items-center justify-between mb-2">
+              <Milk className="w-8 h-8 text-[var(--blue)]" />
+              <span className="text-2xl font-bold text-[var(--text-primary)]">{stats.todayDeliveries}</span>
             </div>
-            <div className="text-sm font-medium text-[var(--text-secondary)]">
-              {language === 'en' ? 'Today Deliveries' : 'आज की डिलीवरी'}
-            </div>
+            <div className="text-sm text-[var(--text-secondary)]">{language === 'en' ? 'Today Deliveries' : 'आज की डिलीवरी'}</div>
           </div>
 
-          {/* Send Bills Card */}
           <button
             onClick={() => onNavigate('billing')}
-            className="group p-5 rounded-xl bg-gradient-to-br from-[var(--green)] to-[var(--dark-green)] text-white hover:scale-[1.02] hover:shadow-lg transition-all"
+            className="group p-6 rounded-2xl bg-gradient-to-br from-[var(--green)] to-[var(--dark-green)] text-white hover:scale-105 transition-all shadow-lg"
           >
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-white/20">
-                <FileText className="w-6 h-6" />
-              </div>
-              <TrendingUp className="w-6 h-6 opacity-80" />
+            <div className="flex items-center justify-between mb-2">
+              <FileText className="w-8 h-8" />
+              <span className="text-2xl font-bold">→</span>
             </div>
-            <div className="text-sm font-semibold text-left">
-              {language === 'en' ? 'Send Bills' : 'बिल भेजें'}
-            </div>
-            <div className="text-xs opacity-80 text-left mt-1">
-              {language === 'en' ? 'Generate & Share' : 'बनाएं और भेजें'}
-            </div>
+            <div className="text-sm font-semibold">{language === 'en' ? 'Send Bills' : 'बिल भेजें'}</div>
           </button>
         </div>
 
-        {/* Search and Filters + Customer Table */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Main Content - Customer Table */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Search and Filters */}
-            <SearchAndFilters
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              milkTypeFilter={milkTypeFilter}
-              onMilkTypeChange={setMilkTypeFilter}
-              outstandingFilter={outstandingFilter}
-              onOutstandingChange={setOutstandingFilter}
-            />
-
-            {/* Customer Table */}
-            <div className="bg-[var(--bg-card)] rounded-xl shadow-sm">
-              <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
-                <h2 className="text-lg font-bold text-[var(--text-primary)]">
-                  {language === 'en' ? 'Customers' : 'ग्राहक'}
-                  <span className="ml-2 text-sm font-normal text-[var(--text-secondary)]">
-                    ({filteredCustomers.length})
-                  </span>
-                </h2>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setShowVoiceModal(true)}
-                    className="px-4 py-2 rounded-lg bg-gradient-to-br from-[var(--blue)] to-[var(--dark-green)] text-white font-semibold hover:scale-105 transition-all flex items-center gap-2 shadow-md"
-                  >
-                    <Mic className="w-4 h-4" />
-                    <span>{language === 'en' ? 'Voice Add' : 'आवाज से जोड़ें'}</span>
-                  </button>
-                  <button
-                    onClick={() => setShowAddCustomerForm(true)}
-                    className="px-4 py-2 rounded-lg bg-gradient-to-br from-[var(--green)] to-[var(--dark-green)] text-white font-semibold hover:scale-105 transition-all flex items-center gap-2 shadow-md"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    <span>{language === 'en' ? 'Add Customer' : 'ग्राहक जोड़ें'}</span>
-                  </button>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="relative">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <Search className="w-5 h-5 text-[var(--text-tertiary)]" />
               </div>
-              <CustomerTable
-                customers={filteredCustomers}
-                onViewCustomer={setSelectedCustomer}
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={language === 'en' ? 'Search customers by name or phone...' : 'नाम या फोन से ग्राहक खोजें...'}
+                className="w-full pl-12 pr-12 py-4 rounded-2xl border-2 border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:border-[var(--green)] focus:outline-none transition-colors text-lg shadow-md"
               />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                <button
+                  onClick={() => setShowVoiceModal(true)}
+                  className="p-2 rounded-lg bg-[var(--green)] text-white hover:scale-110 transition-transform"
+                >
+                  <Mic className="w-5 h-5" />
+                </button>
+                <button className="p-2 rounded-lg bg-[var(--bg-secondary)] hover:bg-[var(--bg-accent)] transition-colors">
+                  <Filter className="w-5 h-5 text-[var(--text-secondary)]" />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredCustomers.map(customer => (
+                <button
+                  key={customer.id}
+                  onClick={() => setSelectedCustomer(customer)}
+                  className="group p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--green)] hover:shadow-xl transition-all text-left"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--green)] to-[var(--dark-green)] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                      {customer.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <h3 className="font-bold text-[var(--text-primary)] text-lg truncate">
+                          {customer.name}
+                        </h3>
+                        <span className="text-2xl flex-shrink-0">
+                          {customer.milk_type === 'cow' ? '🐄' : '🐃'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-[var(--text-secondary)] mb-2">{customer.phone}</p>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-1 text-[var(--text-primary)]">
+                          <Milk className="w-4 h-4 text-[var(--blue)]" />
+                          <span className="font-semibold">{customer.daily_liters}L</span>
+                          <span className="text-xs text-[var(--text-tertiary)]">@ ₹{customer.rate_per_liter}</span>
+                        </div>
+                        {customer.outstanding_amount > 0 && (
+                          <div className="px-3 py-1 rounded-full bg-[var(--orange)]/10 text-[var(--orange)] text-xs font-bold border border-[var(--orange)]/20">
+                            ₹{customer.outstanding_amount} {language === 'en' ? 'Due' : 'बकाया'}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Sidebar - Recent Activity */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24 p-5 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] shadow-sm">
-              <h3 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+          <div className="space-y-4">
+            <div className="p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] shadow-md">
+              <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-[var(--green)]" />
                 {language === 'en' ? 'Recent Activity' : 'हाल की गतिविधि'}
               </h3>
               <div className="space-y-3">
                 {recentTransactions.map((txn, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-[var(--bg-secondary)] hover:bg-[var(--bg-accent)] transition-colors">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-accent)] transition-colors">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       txn.type === 'delivery' ? 'bg-[var(--blue)]/20' : 'bg-[var(--green)]/20'
                     }`}>
                       {txn.type === 'delivery' ? (
@@ -254,29 +257,18 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </div>
       </div>
 
-      {/* Customer Modal */}
       {selectedCustomer && (
         <CustomerModal
-          customer={{
-            ...selectedCustomer,
-            nameHi: selectedCustomer.name,
-            milkType: selectedCustomer.milk_type,
-            dailyLiters: selectedCustomer.daily_liters,
-            ratePerLiter: selectedCustomer.rate_per_liter,
-            outstanding: selectedCustomer.outstanding_amount,
-            photo: selectedCustomer.name.slice(0, 2).toUpperCase(),
-          }}
+          customer={selectedCustomer}
           onClose={() => setSelectedCustomer(null)}
           onNavigate={onNavigate}
         />
       )}
 
-      {/* Add Customer Form */}
       {showAddCustomerForm && (
         <CustomerForm onClose={() => setShowAddCustomerForm(false)} />
       )}
 
-      {/* Voice Modal */}
       {showVoiceModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-[var(--bg-card)] rounded-3xl p-8 max-w-md w-full shadow-2xl animate-scale-in">
