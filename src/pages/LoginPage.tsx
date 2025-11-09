@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Milk, Phone, Mail, ArrowLeft, Languages, Lock } from 'lucide-react';
+import { Milk, Mail, ArrowLeft, Languages, Lock } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -10,12 +10,8 @@ interface LoginPageProps {
 export const LoginPage = ({ onNavigate }: LoginPageProps) => {
   const { language, setLanguage } = useLanguage();
   const { signInWithPassword } = useAuth();
-  const [method, setMethod] = useState<'phone' | 'email'>('phone');
-  const [step, setStep] = useState<'input' | 'otp'>('input');
-  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,17 +19,9 @@ export const LoginPage = ({ onNavigate }: LoginPageProps) => {
     setError(null);
 
     try {
-      if (method === 'email') {
-        await signInWithPassword(email, password);
-        // navigate to dashboard after successful sign in
-        onNavigate('dashboard');
-      } else if (step === 'input' && method === 'phone') {
-        setStep('otp');
-      } else {
-        // Handle phone OTP verification here
-        // TODO: Implement phone authentication with Supabase
-        setError('Phone authentication is not implemented yet');
-      }
+      await signInWithPassword(email, password);
+      // navigate to dashboard after successful sign in
+      onNavigate('dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     }
@@ -77,117 +65,36 @@ export const LoginPage = ({ onNavigate }: LoginPageProps) => {
             </p>
           </div>
 
-          <div className="flex gap-2 mb-6">
-            <button
-              onClick={() => {
-                setMethod('phone');
-                setStep('input');
-              }}
-              className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
-                method === 'phone'
-                  ? 'bg-[var(--green)] text-white'
-                  : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'
-              }`}
-            >
-              <Phone className="w-5 h-5 inline-block mr-2" />
-              {language === 'en' ? 'Phone' : 'फोन'}
-            </button>
-            <button
-              onClick={() => {
-                setMethod('email');
-                setStep('input');
-              }}
-              className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
-                method === 'email'
-                  ? 'bg-[var(--green)] text-white'
-                  : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'
-              }`}
-            >
-              <Mail className="w-5 h-5 inline-block mr-2" />
-              {language === 'en' ? 'Email' : 'ईमेल'}
-            </button>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
-            {step === 'input' ? (
-              <>
-                {method === 'phone' ? (
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                      {language === 'en' ? 'Phone Number' : 'फोन नंबर'}
-                    </label>
-                    <div className="relative">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]">
-                        +91
-                      </div>
-                      <input
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder={language === 'en' ? '98765 43210' : '98765 43210'}
-                        className="w-full pl-14 pr-4 py-3 rounded-xl border-2 border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors text-lg"
-                        required
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                      {language === 'en' ? 'Email Address' : 'ईमेल पता'}
-                    </label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={language === 'en' ? 'your@email.com' : 'आपका@ईमेल.com'}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors text-lg"
-                      required
-                    />
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                        {language === 'en' ? 'Password' : 'पासवर्ड'}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder={language === 'en' ? '••••••••' : '••••••••'}
-                          className="w-full pl-4 pr-12 py-3 rounded-xl border-2 border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors text-lg"
-                          required
-                        />
-                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {language === 'en' ? 'Email Address' : 'ईमेल पता'}
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={language === 'en' ? 'your@email.com' : 'आपका@ईमेल.com'}
+                className="w-full px-4 py-3 rounded-xl border-2 border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors text-lg"
+                required
+              />
+              <div className="mt-4">
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  {language === 'en' ? 'Enter OTP' : 'OTP दर्ज करें'}
+                  {language === 'en' ? 'Password' : 'पासवर्ड'}
                 </label>
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  placeholder="123456"
-                  maxLength={6}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors text-lg text-center tracking-widest"
-                  required
-                />
-                <p className="mt-2 text-sm text-[var(--text-secondary)] text-center">
-                  {language === 'en' ? 'OTP sent to' : 'OTP भेजा गया'} +91 {phone}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setStep('input')}
-                  className="mt-2 text-sm text-[var(--green)] hover:underline w-full text-center"
-                >
-                  {language === 'en' ? 'Change number' : 'नंबर बदलें'}
-                </button>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={language === 'en' ? '••••••••' : '••••••••'}
+                    className="w-full pl-4 pr-12 py-3 rounded-xl border-2 border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors text-lg"
+                    required
+                  />
+                  <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
+                </div>
               </div>
-            )}
+            </div>
 
             {error && (
               <div className="mb-4 p-3 rounded-lg bg-red-100 border border-red-400 text-red-700">
@@ -199,17 +106,7 @@ export const LoginPage = ({ onNavigate }: LoginPageProps) => {
               type="submit"
               className="w-full py-4 rounded-xl bg-gradient-to-r from-[var(--green)] to-[var(--dark-green)] text-white font-bold text-lg hover:scale-105 transition-transform shadow-lg"
             >
-              {step === 'input'
-                ? language === 'en'
-                  ? method === 'phone'
-                    ? 'Send OTP'
-                    : 'Continue'
-                  : method === 'phone'
-                  ? 'OTP भेजें'
-                  : 'जारी रखें'
-                : language === 'en'
-                ? 'Verify & Login'
-                : 'सत्यापित करें और लॉगिन करें'}
+              {language === 'en' ? 'Sign In' : 'साइन इन करें'}
             </button>
           </form>
 

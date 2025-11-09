@@ -305,6 +305,16 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           </div>
         </div>
       )}
+
+      {showAddCustomerForm && <CustomerForm onClose={() => setShowAddCustomerForm(false)} />}
+
+      {selectedCustomer && (
+        <CustomerModal
+          customer={selectedCustomer}
+          onClose={() => setSelectedCustomer(null)}
+          onNavigate={onNavigate}
+        />
+      )}
     </div>
   );
 };
