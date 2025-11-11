@@ -7,6 +7,7 @@ import { CustomerModal } from '../components/CustomerModal';
 import { CustomerForm } from '../components/CustomerForm';
 import { CustomerTable } from '../components/CustomerTable';
 import { SearchAndFilters } from '../components/SearchAndFilters';
+import { DeliveryCalendarComponent } from '../components/DeliveryCalendar';
 import { Customer } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -25,6 +26,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showAddCustomerForm, setShowAddCustomerForm] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [selectedCustomerForCalendar, setSelectedCustomerForCalendar] = useState<Customer | null>(null);
 
   useEffect(() => {
     fetchCustomers();
@@ -214,6 +217,10 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
               <CustomerTable
                 customers={filteredCustomers}
                 onViewCustomer={setSelectedCustomer}
+                onOpenCalendar={(customer) => {
+                  setSelectedCustomerForCalendar(customer);
+                  setIsCalendarOpen(true);
+                }}
               />
             </div>
           </div>
@@ -276,31 +283,26 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         <CustomerForm onClose={() => setShowAddCustomerForm(false)} />
       )}
 
-      {/* Voice Modal */}
+      {/* Voice Modal - Placeholder */}
       {showVoiceModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-[var(--bg-card)] rounded-3xl p-8 max-w-md w-full shadow-2xl animate-scale-in">
+          <div className="bg-[var(--bg-card)] rounded-3xl p-8 max-w-md w-full shadow-2xl">
             <div className="text-center">
               <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-[var(--blue)] to-[var(--green)] flex items-center justify-center animate-pulse">
                 <Mic className="w-12 h-12 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-3">
-                {language === 'en' ? 'Listening...' : 'सुन रहे हैं...'}
+                {language === 'en' ? 'Voice Feature Coming Soon' : 'आवाज सुविधा जल्द आ रही है'}
               </h3>
               <p className="text-[var(--text-secondary)] mb-6">
-                {language === 'en' ? 'Try saying: "Add Rakesh, 2 liters buffalo milk"' : 'कहें: "राकेश जोड़ें, 2 लीटर भैंस का दूध"'}
+                {language === 'en' ? 'Voice input feature will be available in the next update' : 'आवाज इनपुट सुविधा अगले अपडेट में उपलब्ध होगी'}
               </p>
-              <div className="flex gap-3 justify-center">
-                <button
-                  onClick={() => setShowVoiceModal(false)}
-                  className="px-6 py-3 rounded-xl bg-[var(--bg-secondary)] text-[var(--text-primary)] font-medium hover:bg-[var(--bg-accent)] transition-colors"
-                >
-                  {language === 'en' ? 'Cancel' : 'रद्द करें'}
-                </button>
-                <button className="px-6 py-3 rounded-xl bg-[var(--green)] text-white font-medium hover:bg-[var(--dark-green)] transition-colors">
-                  {language === 'en' ? 'Done' : 'हो गया'}
-                </button>
-              </div>
+              <button
+                onClick={() => setShowVoiceModal(false)}
+                className="px-6 py-3 rounded-xl bg-[var(--green)] text-white font-medium hover:bg-[var(--dark-green)] transition-colors"
+              >
+                {language === 'en' ? 'OK' : 'ठीक है'}
+              </button>
             </div>
           </div>
         </div>
@@ -310,9 +312,30 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
 
       {selectedCustomer && (
         <CustomerModal
-          customer={selectedCustomer}
+          customer={{
+            ...selectedCustomer,
+            nameHi: selectedCustomer.name,
+            milkType: selectedCustomer.milk_type,
+            dailyLiters: selectedCustomer.daily_liters,
+            ratePerLiter: selectedCustomer.rate_per_liter,
+            outstanding: selectedCustomer.outstanding_amount,
+            photo: selectedCustomer.name.slice(0, 2).toUpperCase(),
+          }}
           onClose={() => setSelectedCustomer(null)}
           onNavigate={onNavigate}
+        />
+      )}
+
+      {/* Delivery Calendar Modal */}
+      {selectedCustomerForCalendar && (
+        <DeliveryCalendarComponent
+          customer={selectedCustomerForCalendar}
+          isOpen={isCalendarOpen}
+          onClose={() => {
+            setIsCalendarOpen(false);
+            setSelectedCustomerForCalendar(null);
+          }}
+          onBillUpdate={fetchCustomers}
         />
       )}
     </div>

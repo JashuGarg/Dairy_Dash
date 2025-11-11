@@ -18,6 +18,7 @@ export const CustomerForm = ({ onClose }: CustomerFormProps) => {
     daily_liters: 1,
     rate_per_liter: 60,
     outstanding_amount: 0,
+    start_date: new Date().toISOString().split('T')[0], // Default to today
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,7 +58,11 @@ export const CustomerForm = ({ onClose }: CustomerFormProps) => {
 
     try {
       setLoading(true);
-      await createCustomer(formData);
+      await createCustomer({
+        ...formData,
+        skipped_dates: [],
+        billing_cycle: 'monthly' as const,
+      });
       onClose();
     } catch (error: unknown) {
       // Show detailed error to the user so the cause (e.g. 409 conflict / unique constraint) is visible
@@ -163,6 +168,19 @@ export const CustomerForm = ({ onClose }: CustomerFormProps) => {
               // [FIX] Check for NaN and set value to empty string if true
               value={isNaN(formData.rate_per_liter) ? '' : formData.rate_per_liter}
               onChange={(e) => setFormData(prev => ({ ...prev, rate_per_liter: parseInt(e.target.value) }))}
+              className="w-full px-4 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+              {language === 'en' ? 'Start Date' : 'आरंभ तिथि'}
+            </label>
+            <input
+              type="date"
+              required
+              value={formData.start_date}
+              onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
               className="w-full px-4 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:border-[var(--green)] focus:outline-none transition-colors"
             />
           </div>

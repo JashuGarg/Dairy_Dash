@@ -31,8 +31,40 @@ export type Customer = {
   daily_liters: number;
   rate_per_liter: number;
   outstanding_amount: number;
+  start_date: string;
+  skipped_dates: string[];
+  billing_cycle: 'daily' | 'weekly' | 'monthly';
   created_at: string;
   updated_at: string;
+};
+
+export type DeliveryStatus = 'delivered' | 'skipped' | 'pending';
+
+export type DeliveryCalendar = {
+  id: string;
+  user_id: string;
+  customer_id: string;
+  delivery_date: string;
+  status: DeliveryStatus;
+  liters_delivered: number;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BillingSummary = {
+  customer_id: string;
+  user_id: string;
+  name: string;
+  phone: string;
+  start_date: string;
+  rate_per_liter: number;
+  daily_liters: number;
+  total_days: number;
+  delivered_days: number;
+  skipped_days: number;
+  calculated_bill: number;
+  outstanding_amount: number;
 };
 
 export type Delivery = {

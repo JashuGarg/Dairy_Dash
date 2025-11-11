@@ -5,11 +5,19 @@ export const customerService = {
     // Try insert; if foreign-key to users(id) is missing, attempt to create a minimal
     // profile row for the current authenticated user and retry once.
     const attemptInsert = async () => {
+      // Ensure start_date is set
+      const dataWithDefaults = {
+        ...customerData,
+        start_date: customerData.start_date || new Date().toISOString().split('T')[0],
+        skipped_dates: customerData.skipped_dates || [],
+        billing_cycle: customerData.billing_cycle || 'monthly',
+      };
+
       const { data, error } = await supabase
         .from('customers')
         .insert({
           user_id: userId,
-          ...customerData,
+          ...dataWithDefaults,
         })
         .select()
         .single();

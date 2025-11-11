@@ -1,4 +1,4 @@
-import { Edit, Eye, Trash2, Phone, Milk } from 'lucide-react';
+import { Edit, Eye, Trash2, Phone, Milk, Calendar } from 'lucide-react';
 import { Customer } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -7,9 +7,10 @@ interface CustomerTableProps {
   onViewCustomer: (customer: Customer) => void;
   onEditCustomer?: (customer: Customer) => void;
   onDeleteCustomer?: (customer: Customer) => void;
+  onOpenCalendar?: (customer: Customer) => void;
 }
 
-export const CustomerTable = ({ customers, onViewCustomer, onEditCustomer, onDeleteCustomer }: CustomerTableProps) => {
+export const CustomerTable = ({ customers, onViewCustomer, onEditCustomer, onDeleteCustomer, onOpenCalendar }: CustomerTableProps) => {
   const { language } = useLanguage();
 
   if (customers.length === 0) {
@@ -45,6 +46,9 @@ export const CustomerTable = ({ customers, onViewCustomer, onEditCustomer, onDel
             </th>
             <th className="px-6 py-4 text-right text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
               {language === 'en' ? 'Rate (₹)' : 'दर (₹)'}
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+              {language === 'en' ? 'Start Date' : 'आरंभ तिथि'}
             </th>
             <th className="px-6 py-4 text-right text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
               {language === 'en' ? 'Outstanding' : 'बकाया'}
@@ -97,6 +101,13 @@ export const CustomerTable = ({ customers, onViewCustomer, onEditCustomer, onDel
                   ₹{customer.rate_per_liter}
                 </span>
               </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span className="text-sm text-[var(--text-secondary)]">
+                  {customer.start_date 
+                    ? new Date(customer.start_date).toLocaleDateString('en-IN')
+                    : (language === 'en' ? 'Not set' : 'सेट नहीं')}
+                </span>
+              </td>
               <td className="px-6 py-4 whitespace-nowrap text-right">
                 {customer.outstanding_amount > 0 ? (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[var(--orange)]/10 text-[var(--orange)] border border-[var(--orange)]/20">
@@ -110,6 +121,15 @@ export const CustomerTable = ({ customers, onViewCustomer, onEditCustomer, onDel
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center justify-center gap-2">
+                  {onOpenCalendar && (
+                    <button
+                      onClick={() => onOpenCalendar(customer)}
+                      className="p-2 rounded-lg hover:bg-[var(--blue)]/10 text-[var(--blue)] transition-colors"
+                      title={language === 'en' ? 'Open Calendar' : 'कैलेंडर खोलें'}
+                    >
+                      <Calendar className="w-4 h-4" />
+                    </button>
+                  )}
                   <button
                     onClick={() => onViewCustomer(customer)}
                     className="p-2 rounded-lg hover:bg-[var(--blue)]/10 text-[var(--blue)] transition-colors"
