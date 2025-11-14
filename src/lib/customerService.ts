@@ -129,4 +129,20 @@ export const customerService = {
     if (error) throw error;
     return data as Customer;
   },
+
+  async updatePaymentStatus(customerId: string, userId: string, status: 'paid' | 'unpaid') {
+    const { data, error } = await supabase
+      .from('customers')
+      .update({
+        payment_status: status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', customerId)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Customer;
+  },
 };

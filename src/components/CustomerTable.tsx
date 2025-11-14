@@ -1,4 +1,4 @@
-import { Edit, Eye, Trash2, Phone, Milk, Calendar } from 'lucide-react';
+import { Edit, Eye, Trash2, Phone, Milk, Calendar, CreditCard } from 'lucide-react';
 import { Customer } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -8,9 +8,10 @@ interface CustomerTableProps {
   onEditCustomer?: (customer: Customer) => void;
   onDeleteCustomer?: (customer: Customer) => void;
   onOpenCalendar?: (customer: Customer) => void;
+  onTogglePaymentStatus?: (customer: Customer) => void;
 }
 
-export const CustomerTable = ({ customers, onViewCustomer, onEditCustomer, onDeleteCustomer, onOpenCalendar }: CustomerTableProps) => {
+export const CustomerTable = ({ customers, onViewCustomer, onEditCustomer, onDeleteCustomer, onOpenCalendar, onTogglePaymentStatus }: CustomerTableProps) => {
   const { language } = useLanguage();
 
   if (customers.length === 0) {
@@ -109,15 +110,15 @@ export const CustomerTable = ({ customers, onViewCustomer, onEditCustomer, onDel
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right">
-                {customer.outstanding_amount > 0 ? (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[var(--orange)]/10 text-[var(--orange)] border border-[var(--orange)]/20">
-                    ₹{customer.outstanding_amount}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[var(--green)]/10 text-[var(--green)] border border-[var(--green)]/20">
-                    {language === 'en' ? 'Paid' : 'चुकता'}
-                  </span>
-                )}
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                  customer.payment_status === 'unpaid'
+                    ? 'bg-[var(--orange)]/10 text-[var(--orange)] border border-[var(--orange)]/20'
+                    : 'bg-[var(--green)]/10 text-[var(--green)] border border-[var(--green)]/20'
+                }`}>
+                  {customer.payment_status === 'unpaid'
+                    ? (language === 'en' ? 'Unpaid' : 'अवैतनिक')
+                    : (language === 'en' ? 'Paid' : 'चुकता')}
+                </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center justify-center gap-2">
@@ -128,6 +129,22 @@ export const CustomerTable = ({ customers, onViewCustomer, onEditCustomer, onDel
                       title={language === 'en' ? 'Open Calendar' : 'कैलेंडर खोलें'}
                     >
                       <Calendar className="w-4 h-4" />
+                    </button>
+                  )}
+                  {onTogglePaymentStatus && (
+                    <button
+                      onClick={() => onTogglePaymentStatus(customer)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        customer.payment_status === 'unpaid'
+                          ? 'hover:bg-[var(--green)]/10 text-[var(--green)]'
+                          : 'hover:bg-[var(--orange)]/10 text-[var(--orange)]'
+                      }`}
+                      title={customer.payment_status === 'unpaid'
+                        ? (language === 'en' ? 'Mark as Paid' : 'भुगतान के रूप में चिह्नित करें')
+                        : (language === 'en' ? 'Mark as Unpaid' : 'अवैतनिक के रूप में चिह्नित करें')
+                      }
+                    >
+                      <CreditCard className="w-4 h-4" />
                     </button>
                   )}
                   <button

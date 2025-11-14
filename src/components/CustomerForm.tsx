@@ -18,6 +18,7 @@ export const CustomerForm = ({ onClose }: CustomerFormProps) => {
     daily_liters: 1,
     rate_per_liter: 60,
     outstanding_amount: 0,
+    payment_status: 'unpaid' as 'paid' | 'unpaid',
     start_date: new Date().toISOString().split('T')[0], // Default to today
   });
 

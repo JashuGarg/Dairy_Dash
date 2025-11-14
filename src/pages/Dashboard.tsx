@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PieChart, IndianRupee, Milk, TrendingUp, FileText, Bell, Menu, Moon, Sun, LogOut, Mic, UserPlus } from 'lucide-react';
+import { PieChart, IndianRupee, Milk, TrendingUp, FileText, Bell, Menu, Moon, Sun, LogOut, UserPlus } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCustomer } from '../contexts/CustomerContext';
@@ -19,12 +19,11 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   const { theme, toggleTheme } = useTheme();
   const { language } = useLanguage();
   const { customers, fetchCustomers } = useCustomer();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [milkTypeFilter, setMilkTypeFilter] = useState<'all' | 'cow' | 'buffalo'>('all');
   const [outstandingFilter, setOutstandingFilter] = useState<'all' | 'has_outstanding' | 'paid'>('all');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showAddCustomerForm, setShowAddCustomerForm] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedCustomerForCalendar, setSelectedCustomerForCalendar] = useState<Customer | null>(null);
@@ -38,6 +37,20 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
     onNavigate('landing');
   };
 
+  const handleTogglePaymentStatus = async (customer: Customer) => {
+    try {
+      if (!user) return;
+      
+      const newStatus = customer.payment_status === 'paid' ? 'unpaid' : 'paid';
+      const { customerService } = await import('../lib/customerService');
+      await customerService.updatePaymentStatus(customer.id, user.id, newStatus);
+      await fetchCustomers();
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      alert('Failed to update payment status');
+    }
+  };
+
   const recentTransactions = [
     { customer: 'Ramesh Kumar', customerHi: 'रमेश कुमार', amount: 180, type: 'delivery', time: '2h ago' },
     { customer: 'Sunita Devi', customerHi: 'सुनीता देवी', amount: 150, type: 'payment', time: '3h ago' },
@@ -49,7 +62,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
     totalCustomers: customers.length,
     cowCustomers: customers.filter(c => c.milk_type === 'cow').length,
     buffaloCustomers: customers.filter(c => c.milk_type === 'buffalo').length,
-    totalOutstanding: customers.reduce((sum, c) => sum + (c.outstanding_amount || 0), 0),
+    unpaidCustomers: customers.filter(c => c.payment_status === 'unpaid').length,
     todayDeliveries: 12,
   };
 
@@ -128,16 +141,16 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
             </div>
           </div>
 
-          {/* Outstanding Amount Card */}
+          {/* Unpaid Customers Card */}
           <div className="p-5 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-lg bg-[var(--orange)]/10">
                 <IndianRupee className="w-6 h-6 text-[var(--orange)]" />
               </div>
-              <span className="text-3xl font-bold text-[var(--text-primary)]">₹{stats.totalOutstanding}</span>
+              <span className="text-3xl font-bold text-[var(--text-primary)]">{stats.unpaidCustomers}</span>
             </div>
             <div className="text-sm font-medium text-[var(--text-secondary)]">
-              {language === 'en' ? 'Outstanding' : 'बकाया'}
+              {language === 'en' ? 'Unpaid Customers' : 'अवैतनिक ग्राहक'}
             </div>
           </div>
 
@@ -199,13 +212,6 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                 </h2>
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => setShowVoiceModal(true)}
-                    className="px-4 py-2 rounded-lg bg-gradient-to-br from-[var(--blue)] to-[var(--dark-green)] text-white font-semibold hover:scale-105 transition-all flex items-center gap-2 shadow-md"
-                  >
-                    <Mic className="w-4 h-4" />
-                    <span>{language === 'en' ? 'Voice Add' : 'आवाज से जोड़ें'}</span>
-                  </button>
-                  <button
                     onClick={() => setShowAddCustomerForm(true)}
                     className="px-4 py-2 rounded-lg bg-gradient-to-br from-[var(--green)] to-[var(--dark-green)] text-white font-semibold hover:scale-105 transition-all flex items-center gap-2 shadow-md"
                   >
@@ -221,6 +227,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                   setSelectedCustomerForCalendar(customer);
                   setIsCalendarOpen(true);
                 }}
+                onTogglePaymentStatus={handleTogglePaymentStatus}
               />
             </div>
           </div>
@@ -282,33 +289,6 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
       {showAddCustomerForm && (
         <CustomerForm onClose={() => setShowAddCustomerForm(false)} />
       )}
-
-      {/* Voice Modal - Placeholder */}
-      {showVoiceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-[var(--bg-card)] rounded-3xl p-8 max-w-md w-full shadow-2xl">
-            <div className="text-center">
-              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-[var(--blue)] to-[var(--green)] flex items-center justify-center animate-pulse">
-                <Mic className="w-12 h-12 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-3">
-                {language === 'en' ? 'Voice Feature Coming Soon' : 'आवाज सुविधा जल्द आ रही है'}
-              </h3>
-              <p className="text-[var(--text-secondary)] mb-6">
-                {language === 'en' ? 'Voice input feature will be available in the next update' : 'आवाज इनपुट सुविधा अगले अपडेट में उपलब्ध होगी'}
-              </p>
-              <button
-                onClick={() => setShowVoiceModal(false)}
-                className="px-6 py-3 rounded-xl bg-[var(--green)] text-white font-medium hover:bg-[var(--dark-green)] transition-colors"
-              >
-                {language === 'en' ? 'OK' : 'ठीक है'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showAddCustomerForm && <CustomerForm onClose={() => setShowAddCustomerForm(false)} />}
 
       {selectedCustomer && (
         <CustomerModal

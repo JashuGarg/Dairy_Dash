@@ -31,6 +31,7 @@ export type Customer = {
   daily_liters: number;
   rate_per_liter: number;
   outstanding_amount: number;
+  payment_status: 'paid' | 'unpaid';
   start_date: string;
   skipped_dates: string[];
   billing_cycle: 'daily' | 'weekly' | 'monthly';
