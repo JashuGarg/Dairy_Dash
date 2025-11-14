@@ -1,4 +1,4 @@
-import { Milk, Mic, TrendingUp, Send, WifiOff, Languages, Star, Users, CreditCard, CheckCircle, Moon, Sun } from 'lucide-react';
+import { Milk, Mic, TrendingUp, Send, WifiOff, Languages, Star, CreditCard, CheckCircle, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
