@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PieChart, IndianRupee, Milk, TrendingUp, FileText, Bell, Menu, Moon, Sun, LogOut, Mic, UserPlus } from 'lucide-react';
+import { PieChart, IndianRupee, Milk, TrendingUp, FileText, Bell, Menu, Moon, Sun, LogOut, UserPlus } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCustomer } from '../contexts/CustomerContext';
@@ -24,7 +24,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   const [milkTypeFilter, setMilkTypeFilter] = useState<'all' | 'cow' | 'buffalo'>('all');
   const [outstandingFilter, setOutstandingFilter] = useState<'all' | 'has_outstanding' | 'paid'>('all');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  // const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showAddCustomerForm, setShowAddCustomerForm] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedCustomerForCalendar, setSelectedCustomerForCalendar] = useState<Customer | null>(null);
@@ -198,13 +198,13 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                   </span>
                 </h2>
                 <div className="flex items-center gap-3">
-                  <button
+                  {/* <button
                     onClick={() => setShowVoiceModal(true)}
                     className="px-4 py-2 rounded-lg bg-gradient-to-br from-[var(--blue)] to-[var(--dark-green)] text-white font-semibold hover:scale-105 transition-all flex items-center gap-2 shadow-md"
                   >
                     <Mic className="w-4 h-4" />
                     <span>{language === 'en' ? 'Voice Add' : 'आवाज से जोड़ें'}</span>
-                  </button>
+                  </button> */}
                   <button
                     onClick={() => setShowAddCustomerForm(true)}
                     className="px-4 py-2 rounded-lg bg-gradient-to-br from-[var(--green)] to-[var(--dark-green)] text-white font-semibold hover:scale-105 transition-all flex items-center gap-2 shadow-md"
@@ -284,7 +284,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
       )}
 
       {/* Voice Modal - Placeholder */}
-      {showVoiceModal && (
+      {/* {showVoiceModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-[var(--bg-card)] rounded-3xl p-8 max-w-md w-full shadow-2xl">
             <div className="text-center">
@@ -306,7 +306,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {showAddCustomerForm && <CustomerForm onClose={() => setShowAddCustomerForm(false)} />}
 
